@@ -21,7 +21,7 @@ SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = 0
 SWEP.Secondary.Automatic = false
 
-local duration = CreateConVar("c4_enhanced_defusetimer", 5, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "How long it takes to defuse C4.", 0, 3599)
+local duration = GetConVar("c4_enhanced_defusetimer")
 
 function SWEP:SetupDataTables()
 	self:NetworkVar("Entity", 0, "DefuseEntity")
@@ -97,7 +97,7 @@ function SWEP:StartDefuse(ent)
 
 	self:SetDefuseEntity(ent)
 	self:SetStartDefuseTime(CurTime())
-	self:SetDefuseDuration(duration:GetInt())
+	self:SetDefuseDuration(duration:GetFloat())
 end
 
 function SWEP:StopDefuse()
