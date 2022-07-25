@@ -1,0 +1,190 @@
+AddCSLuaFile()
+
+SWEP.PrintName = "Defuser Kit"
+SWEP.Author = "TankNut"
+SWEP.Instructions = [[Left Click: Start defusing
+
+Defusing will stop if you look away from the bomb.]]
+
+SWEP.ViewModel = Model("models/weapons/w_defuser_single.mdl")
+SWEP.WorldModel = Model("models/weapons/w_defuser_single.mdl")
+
+SWEP.Spawnable = true
+
+SWEP.Primary.Ammo = ""
+SWEP.Primary.ClipSize = -1
+SWEP.Primary.DefaultClip = 0
+SWEP.Primary.Automatic = false
+
+SWEP.Secondary.Ammo = ""
+SWEP.Secondary.ClipSize = -1
+SWEP.Secondary.DefaultClip = 0
+SWEP.Secondary.Automatic = false
+
+local duration = CreateConVar("c4_enhanced_defusetimer", 5, {FCVAR_ARCHIVE, FCVAR_REPLICATED}, "How long it takes to defuse C4.", 0, 3599)
+
+function SWEP:SetupDataTables()
+	self:NetworkVar("Entity", 0, "DefuseEntity")
+
+	self:NetworkVar("Float", 0, "StartDefuseTime")
+	self:NetworkVar("Float", 1, "DefuseDuration")
+end
+
+function SWEP:PrimaryAttack()
+	local ok, ent = self:CheckDefuseValidity()
+
+	if ok then
+		self:StartDefuse(ent)
+	end
+end
+
+function SWEP:SecondaryAttack()
+end
+
+function SWEP:Deploy()
+	self:StopDefuse()
+end
+
+
+function SWEP:Holster()
+	self:StopDefuse()
+
+	return true
+end
+
+function SWEP:IsDefusing()
+	return IsValid(self:GetDefuseEntity())
+end
+
+function SWEP:CheckDefuseValidity(checkDefuse)
+	if checkDefuse and not IsValid(self:GetDefuseEntity()) then
+		return false
+	end
+
+	local ent = self:GetOwner():GetEyeTraceNoCursor().Entity
+
+	if not IsValid(ent) or ent:GetClass() != "ent_c4_enhanced" then
+		return false
+	end
+
+	if not ent:IsArmed() then
+		return false
+	end
+
+	if checkDefuse and ent != self:GetDefuseEntity() then
+		return false
+	end
+
+	return true, ent
+end
+
+function SWEP:Think()
+	if self:IsDefusing() then
+		if not self:CheckDefuseValidity(true) then
+			self:StopDefuse()
+
+			return
+		end
+
+		if CurTime() - self:GetStartDefuseTime() >= self:GetDefuseDuration() then
+			self:FinishDefuse()
+		end
+	end
+end
+
+function SWEP:StartDefuse(ent)
+	self:EmitSound("c4.disarmstart")
+
+	self:SetDefuseEntity(ent)
+	self:SetStartDefuseTime(CurTime())
+	self:SetDefuseDuration(duration:GetInt())
+end
+
+function SWEP:StopDefuse()
+	self:SetDefuseEntity(NULL)
+	self:SetStartDefuseTime(0)
+	self:SetDefuseDuration(0)
+end
+
+function SWEP:FinishDefuse()
+	self:EmitSound("c4.disarmfinish")
+
+	if SERVER then
+		self:GetDefuseEntity():StopTimer()
+	end
+
+	self:StopDefuse()
+end
+
+local holdtype = {
+	[ACT_MP_STAND_IDLE]					= ACT_HL2MP_IDLE_SLAM,
+	[ACT_MP_WALK]						= ACT_HL2MP_WALK_SLAM,
+	[ACT_MP_RUN]						= ACT_HL2MP_RUN_SLAM,
+	[ACT_MP_CROUCH_IDLE]				= ACT_HL2MP_IDLE_CROUCH_PISTOL,
+	[ACT_MP_CROUCHWALK]					= ACT_HL2MP_WALK_CROUCH_PISTOL,
+	[ACT_MP_ATTACK_STAND_PRIMARYFIRE]	= ACT_HL2MP_GESTURE_RANGE_ATTACK_SLAM,
+	[ACT_MP_ATTACK_CROUCH_PRIMARYFIRE]	= ACT_HL2MP_GESTURE_RANGE_ATTACK_SLAM,
+	[ACT_MP_JUMP]						= ACT_HL2MP_JUMP_SLAM,
+	[ACT_RANGE_ATTACK1]					= ACT_HL2MP_GESTURE_RANGE_ATTACK_SLAM,
+	[ACT_MP_SWIM]						= ACT_HL2MP_SWIM_SLAM
+}
+
+function SWEP:TranslateActivity(act)
+	return holdtype[act] or -1
+end
+
+if CLIENT then
+	function SWEP:DrawHUDBackground()
+		if self:IsDefusing() then
+			local x = ScrW() * 0.5
+			local y = (ScrH() * 0.5) + ScreenScale(20)
+			local w = ScreenScale(100)
+			local h = ScreenScale(10)
+			local margin = ScreenScale(1)
+
+			surface.SetDrawColor(50, 50, 50, 200)
+			surface.DrawRect(x - w - margin, y - margin, w * 2 + margin * 2, h + margin * 2)
+
+			local fraction = (CurTime() - self:GetStartDefuseTime()) / self:GetDefuseDuration()
+
+			surface.SetDrawColor(200, 0, 0, 200)
+			surface.DrawRect(x - w, y, w * 2 * fraction, h)
+		end
+	end
+
+	function SWEP:GetViewModelPosition(pos, ang)
+		return LocalToWorld(Vector(15, -5, -7), Angle(35, -25, 0), pos, ang)
+	end
+
+	function SWEP:DrawWorldModel()
+		local ply = self:GetOwner()
+
+		if IsValid(ply) then
+			self:SetRenderOrigin(vector_origin)
+
+			local bone = ply:LookupBone("ValveBiped.Bip01_R_Hand")
+
+			if not bone then
+				return
+			end
+
+			local matrix = ply:GetBoneMatrix(bone)
+
+			if not matrix then
+				return
+			end
+
+			local pos, ang = LocalToWorld(Vector(4, -5, 0), Angle(-15, 30, 180), matrix:GetTranslation(), matrix:GetAngles())
+
+			self:SetRenderOrigin(pos)
+			self:SetRenderAngles(ang)
+
+			self:DrawModel()
+		else
+			self:SetRenderOrigin(nil)
+			self:SetRenderAngles(nil)
+
+			self:DrawModel()
+		end
+	end
+end
