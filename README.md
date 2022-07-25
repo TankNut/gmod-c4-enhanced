@@ -1,7 +1,7 @@
 # Enhanced C4
 An addon for Garry's Mod that adds C4 and a matching defuse kit.
 
-### [Workshop link]()
+### [Workshop link](https://steamcommunity.com/sharedfiles/filedetails/?id=2840058127)
 
 ## Features
 * Custom timers
