@@ -97,7 +97,7 @@ else
 			explo:SetOwner(self:GetInstigator())
 			explo:SetPos(pos)
 			explo:SetKeyValue("iMagnitude", convarDamage:GetInt())
-			explo:SetKeyValue("spawnflags", 576)
+			explo:SetKeyValue("spawnflags", 608)
 			explo:Spawn()
 			explo:Activate()
 			explo:Fire("Explode")
