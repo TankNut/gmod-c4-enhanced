@@ -61,7 +61,7 @@ net.Receive("C4EnhancedOpenMenu", function()
 	ui.Display:SetSize(110, 55)
 	ui.Display:SetDisabled(true)
 
-	ui:SetTimer(ent:GetTimer())
+	ui:SetTimer(math.Round(ent:GetTimer()))
 
 	ui:AddButton(10, 30, "+", 600)
 	ui:AddButton(10, 113, "-", -600)

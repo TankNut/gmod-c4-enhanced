@@ -43,10 +43,9 @@ function ENT:Initialize()
 end
 
 function ENT:SetupDataTables()
-	self:NetworkVar("Int", 0, "Timer")
-
-	self:NetworkVar("Float", 0, "LastBeep")
-	self:NetworkVar("Float", 1, "ExplodeTimer")
+	self:NetworkVar("Float", 1, "Timer")
+	self:NetworkVar("Float", 2, "NextBeep")
+	self:NetworkVar("Float", 3, "ExplodeTimer")
 
 	self:NetworkVar("Entity", 0, "Instigator")
 end
@@ -67,10 +66,13 @@ if CLIENT then
 			return
 		end
 
-		cam.Start3D2D(self:LocalToWorld(Vector(4.3, -1.8, 8.85)), self:LocalToWorldAngles(Angle(-180, 90, 180)), 0.011)
-			local time = self:IsArmed() and math.ceil(self:GetExplodeTimer() - CurTime()) or self:GetTimer()
+		cam.Start3D2D(self:LocalToWorld(Vector(3.78, -1.8, 8.85)), self:LocalToWorldAngles(Angle(-180, 90, 180)), 0.0067)
+			local time = self:IsArmed() and self:GetExplodeTimer() - CurTime() or self:GetTimer()
+			local seconds, ms = math.modf(time)
 
-			draw.DrawText(os.date("%M:%S", time), "C4.Enhanced.UIWorld", 0, 0, Color(151, 12, 12))
+			local str = string.format("%s:%02d", os.date("%M:%S", seconds), ms * 100)
+
+			draw.DrawText(str, "C4.Enhanced.UIWorld", 0, 0, Color(151, 12, 12))
 		cam.End3D2D()
 	end
 else
@@ -103,11 +105,12 @@ else
 			return true
 		end
 
-		local nextBeep = math.Clamp(math.Remap(self:GetExplodeTimer() - CurTime(), 1, 5, 0.1, 1), 0.1, 1)
-
-		if CurTime() - self:GetLastBeep() >= nextBeep then
+		if CurTime() >= self:GetNextBeep() then
 			self:EmitSound("weapons/c4_enhanced/c4_click.wav", 80)
-			self:SetLastBeep(CurTime())
+
+			local nextBeep = math.Clamp(math.Remap(self:GetExplodeTimer() - CurTime(), 1, 5, 0.1, 1), 0.1, 1)
+
+			self:SetNextBeep(self:GetNextBeep() + nextBeep)
 		end
 	end
 
@@ -122,16 +125,18 @@ else
 	end
 
 	function ENT:StartTimer(ply)
+		local time = CurTime()
+
 		self:SetInstigator(ply)
-		self:SetExplodeTimer(CurTime() + self:GetTimer())
-		self:SetLastBeep(CurTime())
+		self:SetExplodeTimer(time + self:GetTimer())
+		self:SetNextBeep(math.ceil(CurTime()) + 1)
 	end
 
 	function ENT:StopTimer()
-		self:SetTimer(math.ceil(self:GetExplodeTimer() - CurTime()))
+		self:SetTimer(self:GetExplodeTimer() - CurTime())
 
 		self:SetInstigator(NULL)
 		self:SetExplodeTimer(0)
-		self:SetLastBeep(0)
+		self:SetNextBeep(0)
 	end
 end
