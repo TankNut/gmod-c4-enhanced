@@ -61,19 +61,37 @@ if CLIENT then
 		weight = 500
 	})
 
+	local sprite = Material("sprites/redglow1")
+
 	function ENT:DrawTranslucent()
-		if not self:IsArmed() and CurTime() % 1 > 0.5 then
-			return
+		if self:IsArmed() or CurTime() % 1 <= 0.5 then
+			cam.Start3D2D(self:LocalToWorld(Vector(3.78, -1.8, 8.85)), self:LocalToWorldAngles(Angle(-180, 90, 180)), 0.0067)
+				local time = self:IsArmed() and self:GetExplodeTimer() - CurTime() or self:GetTimer()
+				local seconds, ms = math.modf(time)
+
+				local str = string.format("%s:%02d", os.date("%M:%S", seconds), math.max(ms * 100, 0))
+
+				draw.DrawText(str, "C4.Enhanced.UIWorld", 0, 0, Color(151, 12, 12))
+			cam.End3D2D()
 		end
 
-		cam.Start3D2D(self:LocalToWorld(Vector(3.78, -1.8, 8.85)), self:LocalToWorldAngles(Angle(-180, 90, 180)), 0.0067)
-			local time = self:IsArmed() and self:GetExplodeTimer() - CurTime() or self:GetTimer()
-			local seconds, ms = math.modf(time)
+		if self:IsArmed() then
+			if not self.LastGlow then
+				self.LastGlow = CurTime()
+			end
 
-			local str = string.format("%s:%02d", os.date("%M:%S", seconds), ms * 100)
+			local nextGlow = math.Clamp(math.Remap(self:GetExplodeTimer() - CurTime(), 1, 5, 0.1, 1), 0.1, 1)
 
-			draw.DrawText(str, "C4.Enhanced.UIWorld", 0, 0, Color(151, 12, 12))
-		cam.End3D2D()
+			if CurTime() - self.LastGlow >= nextGlow then
+				self.LastGlow = self.LastGlow + nextGlow
+			end
+
+			local pos = self:LocalToWorld(Vector(1.2, -0.8, 9.5))
+			local alpha = math.Clamp(math.Remap(CurTime() - self.LastGlow, 0, 0.15, 1, 0), 0, 1) * 255
+
+			render.SetMaterial(sprite)
+			render.DrawSprite(pos, 8, 8, ColorAlpha(color_white, alpha))
+		end
 	end
 else
 	function ENT:Think()
