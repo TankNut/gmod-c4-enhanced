@@ -44,7 +44,7 @@ end
 
 function ENT:SetupDataTables()
 	self:NetworkVar("Float", 1, "Timer")
-	self:NetworkVar("Float", 2, "NextBeep")
+	self:NetworkVar("Float", 2, "LastBeep")
 	self:NetworkVar("Float", 3, "ExplodeTimer")
 
 	self:NetworkVar("Entity", 0, "Instigator")
@@ -105,12 +105,12 @@ else
 			return true
 		end
 
-		if CurTime() >= self:GetNextBeep() then
+		local nextBeep = math.Clamp(math.Remap(self:GetExplodeTimer() - CurTime(), 1, 5, 0.1, 1), 0.1, 1)
+
+		if CurTime() - self:GetLastBeep() >= nextBeep then
 			self:EmitSound("weapons/c4_enhanced/c4_click.wav", 80)
 
-			local nextBeep = math.Clamp(math.Remap(self:GetExplodeTimer() - CurTime(), 1, 5, 0.1, 1), 0.1, 1)
-
-			self:SetNextBeep(self:GetNextBeep() + nextBeep)
+			self:SetLastBeep(self:GetLastBeep() + nextBeep)
 		end
 	end
 
@@ -129,7 +129,7 @@ else
 
 		self:SetInstigator(ply)
 		self:SetExplodeTimer(time + self:GetTimer())
-		self:SetNextBeep(math.ceil(CurTime()) + 1)
+		self:SetLastBeep(math.ceil(CurTime()) - 1)
 	end
 
 	function ENT:StopTimer()
@@ -137,6 +137,6 @@ else
 
 		self:SetInstigator(NULL)
 		self:SetExplodeTimer(0)
-		self:SetNextBeep(0)
+		self:SetLastBeep(0)
 	end
 end
