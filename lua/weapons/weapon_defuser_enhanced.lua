@@ -31,6 +31,10 @@ function SWEP:SetupDataTables()
 end
 
 function SWEP:PrimaryAttack()
+	if self:IsDefusing() then
+		return
+	end
+
 	local ok, ent = self:CheckDefuseValidity()
 
 	if ok then
