@@ -60,14 +60,21 @@ function SWEP:IsDefusing()
 	return IsValid(self:GetDefuseEntity())
 end
 
+local range = 82 * 82 -- Default +use range
+
 function SWEP:CheckDefuseValidity(checkDefuse)
 	if checkDefuse and not IsValid(self:GetDefuseEntity()) then
 		return false
 	end
 
-	local ent = self:GetOwner():GetEyeTraceNoCursor().Entity
+	local ply = self:GetOwner()
+	local ent = ply:GetEyeTraceNoCursor().Entity
 
 	if not IsValid(ent) or ent:GetClass() != "ent_c4_enhanced" then
+		return false
+	end
+
+	if ply:EyePos():DistToSqr(ent:WorldSpaceCenter()) > range then
 		return false
 	end
 
