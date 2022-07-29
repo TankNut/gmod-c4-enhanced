@@ -94,6 +94,16 @@ if CLIENT then
 		end
 	end
 else
+	function ENT:TriggerBombTargets(key, ply)
+		local pos = self:GetPos()
+
+		for _, v in pairs(ents.FindByClass("func_bomb_target")) do
+			if v:CheckBrush(pos) then
+				v:Fire(key, "nil", 0, ply, self)
+			end
+		end
+	end
+
 	function ENT:Think()
 		self:NextThink(CurTime())
 
@@ -108,9 +118,13 @@ else
 
 			ParticleEffect("high_explosive_main", pos, angle_zero)
 
+			local ply = self:GetInstigator()
+
+			self:TriggerBombTargets("BombExplode", ply)
+
 			local explo = ents.Create("env_explosion")
 
-			explo:SetOwner(self:GetInstigator())
+			explo:SetOwner(ply)
 			explo:SetPos(pos)
 			explo:SetKeyValue("iMagnitude", convarDamage:GetInt())
 			explo:SetKeyValue("spawnflags", 608)
@@ -148,13 +162,17 @@ else
 		self:SetInstigator(ply)
 		self:SetExplodeTimer(time + self:GetTimer())
 		self:SetLastBeep(math.ceil(CurTime()) - 1)
+
+		self:TriggerBombTargets("BombPlanted", ply)
 	end
 
-	function ENT:StopTimer()
+	function ENT:StopTimer(ply)
 		self:SetTimer(self:GetExplodeTimer() - CurTime())
 
 		self:SetInstigator(NULL)
 		self:SetExplodeTimer(0)
 		self:SetLastBeep(0)
+
+		self:TriggerBombTargets("BombDefused", ply)
 	end
 end

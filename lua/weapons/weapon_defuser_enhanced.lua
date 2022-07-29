@@ -121,7 +121,7 @@ function SWEP:FinishDefuse()
 	self:EmitSound("c4.disarmfinish")
 
 	if SERVER then
-		self:GetDefuseEntity():StopTimer()
+		self:GetDefuseEntity():StopTimer(self:GetOwner())
 	end
 
 	self:StopDefuse()
