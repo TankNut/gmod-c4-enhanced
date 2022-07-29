@@ -6,6 +6,7 @@ An addon for Garry's Mod that adds C4 and a matching defuse kit.
 ## Features
 * Custom timers
 * Configurable min-max explosion timers, damage and defuse duration
+* Options to trigger func_bomb_target outputs and restricted placement rules
 * Gbombs 5 sounds and effects
 
 ## Convars
