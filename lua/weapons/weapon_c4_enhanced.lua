@@ -57,7 +57,6 @@ function SWEP:PrimaryAttack()
 			end
 
 			if not ok then
-				print("Restrict")
 				return
 			end
 		end
