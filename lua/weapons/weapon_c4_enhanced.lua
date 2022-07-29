@@ -30,6 +30,8 @@ SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = 0
 SWEP.Secondary.Automatic = false
 
+local restrict = GetConVar("c4_enhanced_restrict_placement")
+
 function SWEP:PrimaryAttack()
 	if SERVER then
 		local ply = self:GetOwner()
@@ -43,6 +45,21 @@ function SWEP:PrimaryAttack()
 
 		if not tr.Hit or not tr.HitWorld then
 			return
+		end
+
+		if restrict:GetBool() then
+			local ok = false
+			for _, v in pairs(ents.FindByClass("func_bomb_target")) do
+				if v:CheckBrush(tr.HitPos) then
+					ok = true
+					break
+				end
+			end
+
+			if not ok then
+				print("Restrict")
+				return
+			end
 		end
 
 		local ang = tr.HitNormal:Angle()
@@ -96,5 +113,25 @@ end
 if CLIENT then
 	function SWEP:GetViewModelPosition(pos, ang)
 		return LocalToWorld(Vector(-5, -1, -1), Angle(), pos, ang)
+	end
+
+	surface.CreateFont("enhanced_c4_hud", {
+		font = "Counter-Strike",
+		size = 40,
+		weight = 0,
+		additive = true
+	})
+
+	function SWEP:DrawHUDBackground()
+		if self:GetOwner():GetNWBool("enhanced_c4_bomb_target", false) and CurTime() % 0.3 > 0.15 then
+			surface.SetTextColor(160, 0, 0)
+		else
+			surface.SetTextColor(0, 160, 0)
+		end
+
+		surface.SetFont("enhanced_c4_hud")
+
+		surface.SetTextPos(ScreenScale(16), ScreenScale(240))
+		surface.DrawText("j")
 	end
 end
