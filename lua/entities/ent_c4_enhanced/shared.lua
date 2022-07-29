@@ -94,7 +94,13 @@ if CLIENT then
 		end
 	end
 else
+	local useTriggers = GetConVar("c4_enhanced_use_map_triggers")
+
 	function ENT:TriggerBombTargets(key, ply)
+		if not useTriggers:GetBool() then
+			return
+		end
+
 		local pos = self:GetPos()
 
 		for _, v in pairs(ents.FindByClass("func_bomb_target")) do
