@@ -14,3 +14,5 @@ An addon for Garry's Mod that adds C4 and a matching defuse kit.
 * `c4_enhanced_maxtimer` - The maximum timer C4 can be set to.
 * `c4_enhanced_damage` - How much damage C4 does when it explodes.
 * `c4_enhanced_defusetimer` - How long it takes to defuse C4.
+* `c4_enhanced_use_map_triggers` - Whether C4 should trigger func_bomb_target outputs.
+* `c4_enhanced_restrict_placement` - Whether C4 only be placable in func_bomb_target areas.
