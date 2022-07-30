@@ -148,18 +148,17 @@ if CLIENT then
 	function SWEP:DrawHUDBackground()
 		if self:IsDefusing() then
 			local x = ScrW() * 0.5
-			local y = (ScrH() * 0.5) + ScreenScale(20)
-			local w = ScreenScale(100)
-			local h = ScreenScale(10)
-			local margin = ScreenScale(1)
+			local y = ScreenScale(225)
+			local w = ScreenScale(225)
+			local h = 10
 
-			surface.SetDrawColor(50, 50, 50, 200)
-			surface.DrawRect(x - w - margin, y - margin, w * 2 + margin * 2, h + margin * 2)
+			surface.SetDrawColor(255, 176, 0, 160)
+			surface.DrawOutlinedRect(x - w * 0.5, y, w, h, 1)
 
 			local fraction = (CurTime() - self:GetStartDefuseTime()) / self:GetDefuseDuration()
 
-			surface.SetDrawColor(200, 0, 0, 200)
-			surface.DrawRect(x - w, y, w * 2 * fraction, h)
+			surface.SetDrawColor(255, 176, 0, 240)
+			surface.DrawRect(x - w * 0.5 + 2, y + 2, w * fraction - 4, h - 4)
 		end
 	end
 
