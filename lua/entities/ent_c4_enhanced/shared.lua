@@ -138,6 +138,8 @@ else
 			explo:Activate()
 			explo:Fire("Explode")
 
+			util.ScreenShake(pos, 25, 15, 1, 3000)
+
 			SafeRemoveEntity(self)
 
 			return true
