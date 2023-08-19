@@ -12,8 +12,6 @@ ENT.PrintName = "C4"
 
 ENT.Model = Model("models/weapons/w_c4_planted.mdl")
 
-ENT.PhysgunDisabled = true
-
 if CLIENT then
 	include("cl_ui.lua")
 else
@@ -52,6 +50,10 @@ end
 
 function ENT:IsArmed()
 	return self:GetExplodeTimer() > 0
+end
+
+function ENT:PhysgunPickup(ply)
+	return self:GetMoveType() == MOVETYPE_VPHYSICS
 end
 
 if CLIENT then

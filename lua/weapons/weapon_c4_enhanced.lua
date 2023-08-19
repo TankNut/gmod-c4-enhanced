@@ -9,9 +9,7 @@ game.AddAmmoType({name = "c4_enhanced", maxcarry = 5})
 SWEP.PrintName = "C4"
 SWEP.Author = "TankNut"
 SWEP.Instructions = [[Left Click: Plant C4
-Use key: Interact with planted C4
-
-You can only plant C4 on a solid surface.]]
+Use key: Interact with planted C4]]
 
 SWEP.ViewModel = Model("models/weapons/cstrike/c_c4.mdl")
 SWEP.WorldModel = Model("models/weapons/w_c4.mdl")
@@ -31,6 +29,7 @@ SWEP.Secondary.DefaultClip = 0
 SWEP.Secondary.Automatic = false
 
 local restrict = GetConVar("c4_enhanced_restrict_placement")
+local props = GetConVar("c4_enhanced_free_placement")
 
 function SWEP:PrimaryAttack()
 	if SERVER then
@@ -43,8 +42,22 @@ function SWEP:PrimaryAttack()
 			mask = MASK_SOLID
 		})
 
-		if not tr.Hit or not tr.HitWorld then
-			return
+		local allowProps = props:GetBool()
+
+		if allowProps then
+			if not tr.Hit then
+				return
+			end
+
+			local ent = tr.Entity
+
+			if ent:IsPlayer() or ent:IsNPC() then
+				return
+			end
+		else
+			if not tr.Hit or not tr.HitWorld then
+				return
+			end
 		end
 
 		if restrict:GetBool() then
@@ -78,6 +91,16 @@ function SWEP:PrimaryAttack()
 		ent:SetAngles(ang)
 		ent:Spawn()
 		ent:Activate()
+
+		if allowProps then
+			ent:SetMoveType(MOVETYPE_VPHYSICS)
+
+			if IsValid(tr.Entity) then
+				constraint.Weld(ent, tr.Entity, 0, tr.PhysicsBone, 0, true, false)
+			else
+				ent:GetPhysicsObject():EnableMotion(false)
+			end
+		end
 
 		ply:EmitSound("weapons/c4_enhanced/c4_plant_quiet.wav")
 
